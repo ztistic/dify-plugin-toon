@@ -39,15 +39,18 @@ credentials to provide.
 
 ### JSON to TOON
 
-Convert a JSON string into TOON format. Returns a JSON message containing the
-TOON output together with compression statistics.
+Convert a JSON string into TOON format.
 
 | Parameter    | Type     | Required | Description                                             |
 |--------------|----------|----------|---------------------------------------------------------|
 | `json_input` | `string` | `Yes`    | The JSON string to convert                              |
 | `delimiter`  | `select` | `No`     | Field delimiter: `comma` (default), `tab` or `pipe`     |
 
-Output message fields:
+Outputs:
+
+- **text**: the plain TOON text, ready for the LLM to read directly.
+- **json**: a structured object with the TOON text and compression
+  statistics, referenceable from downstream nodes:
 
 | Field               | Description                                       |
 |---------------------|---------------------------------------------------|
@@ -63,7 +66,15 @@ Example input:
 {"name": "Alice", "age": 30, "active": true}
 ```
 
-Example output (message text):
+Example **text** output:
+
+```
+name: Alice
+age: 30
+active: true
+```
+
+Example **json** output:
 
 ```json
 {
@@ -80,14 +91,19 @@ declared once in the header and each element becomes one compact row.
 
 ### TOON to JSON
 
-Convert a TOON string back into a pretty-printed JSON string
-(`ensure_ascii=false`, 2-space indent). The delimiter is auto-detected from
-tabular headers, as the TOON specification requires. Round-tripping
-JSON -> TOON -> JSON preserves the data.
+Convert a TOON string back into JSON (`ensure_ascii=false`, 2-space indent).
+The delimiter is auto-detected from tabular headers, as the TOON
+specification requires. Round-tripping JSON -> TOON -> JSON preserves the
+data.
 
 | Parameter    | Type     | Required | Description                |
 |--------------|----------|----------|----------------------------|
 | `toon_input` | `string` | `Yes`    | The TOON string to convert |
+
+Outputs:
+
+- **text**: the pretty-printed JSON string.
+- **json**: the parsed object, referenceable from downstream nodes.
 
 ## Error Handling
 

@@ -24,6 +24,9 @@ class ToonToJsonAction(Tool):
             return
 
         try:
+            # text output: the formatted JSON string; json output: the parsed
+            # object for downstream nodes to reference as structured variables.
             yield self.create_text_message(json.dumps(data, ensure_ascii=False, indent=2))
+            yield self.create_json_message(data)
         except (TypeError, ValueError) as e:
             yield self.create_text_message(f'JSON serialization failed: {e}')

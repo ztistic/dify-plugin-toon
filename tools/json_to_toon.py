@@ -40,8 +40,12 @@ class JsonToToonAction(Tool):
             yield self.create_text_message(f'TOON encoding failed: {e}')
             return
 
+        # text output: the plain TOON text for the LLM to read;
+        # json output: the TOON text plus compression statistics for
+        # downstream nodes to reference as structured variables.
         result = {
             'toon': toon_str,
             **compute_stats(json_input, toon_str),
         }
-        yield self.create_text_message(json.dumps(result, ensure_ascii=False, indent=2))
+        yield self.create_text_message(toon_str)
+        yield self.create_json_message(result)

@@ -1,4 +1,5 @@
 import json
+import os
 
 import pytest
 
@@ -18,6 +19,10 @@ def make_tool(cls):
 
 def message_text(message) -> str:
     return getattr(message.message, 'text', message.message)
+
+
+def message_json(message) -> dict:
+    return message.message.json_object
 
 
 class TestNormalizeDelimiter:
@@ -96,14 +101,30 @@ class TestRoundTrip:
         assert 'Mon,-2,4,snow,80' in toon_str
         assert decode_toon(toon_str) == data
 
+    def test_official_benchmark_github_repos(self):
+        # 官方 toon 仓库 benchmarks/data/github-repos.json（MIT 许可）：
+        # Top 100 GitHub 仓库，官方基准声称较 JSON 省约 42% token（字符口径约 38%）
+        fixture = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'github-repos.json')
+        with open(fixture, encoding='utf-8') as f:
+            data = json.load(f)
+        payload = json.dumps(data, ensure_ascii=False)
+        toon_str = encode_toon(data)
+        # 百条同构记录折叠为单张表：字段名只声明一次
+        assert toon_str.startswith('[100]{id,name,repo,description,')
+        assert decode_toon(toon_str) == data
+        stats = compute_stats(payload, toon_str)
+        assert stats['savings_percent'] > 35
+
 
 class TestJsonToToonAction:
     def test_basic_object(self):
         tool = make_tool(JsonToToonAction)
         msgs = list(tool._invoke({'json_input': '{"name": "Alice", "age": 30, "active": true}'}))
-        assert len(msgs) == 1
-        result = json.loads(message_text(msgs[0]))
-        assert 'name: Alice' in result['toon']
+        # text 输出为纯 TOON，json 输出携带统计
+        assert len(msgs) == 2
+        assert 'name: Alice' in message_text(msgs[0])
+        result = message_json(msgs[1])
+        assert result['toon'] == message_text(msgs[0])
         assert result['original_chars'] == len('{"name": "Alice", "age": 30, "active": true}')
         assert result['toon_chars'] == len(result['toon'])
         assert 0 < result['compression_ratio'] < 1
@@ -113,13 +134,14 @@ class TestJsonToToonAction:
         payload = json.dumps(
             {'users': [{'id': 1, 'name': 'Ada', 'role': 'admin'}, {'id': 2, 'name': 'Bob', 'role': 'user'}]}
         )
-        result = json.loads(message_text(list(tool._invoke({'json_input': payload}))[0]))
-        toon = result['toon']
+        msgs = list(tool._invoke({'json_input': payload}))
+        toon = message_json(msgs[1])['toon']
         assert 'users[2]{id,name,role}:' in toon
         # 字段名只出现一次（在 header 中），数据以紧凑表格行排列
         assert toon.count('id') == 1
         assert '1,Ada,admin' in toon
         assert '2,Bob,user' in toon
+        assert message_text(msgs[0]) == toon
 
     @pytest.mark.parametrize(
         'delimiter,sep',
@@ -128,17 +150,16 @@ class TestJsonToToonAction:
     def test_custom_delimiter(self, delimiter, sep):
         tool = make_tool(JsonToToonAction)
         payload = json.dumps([{'id': 1, 'name': 'Ada'}])
-        result = json.loads(
-            message_text(list(tool._invoke({'json_input': payload, 'delimiter': delimiter}))[0])
-        )
-        assert f'1{sep}Ada' in result['toon']
+        msgs = list(tool._invoke({'json_input': payload, 'delimiter': delimiter}))
+        toon = message_json(msgs[1])['toon']
+        assert f'1{sep}Ada' in toon
 
     def test_nested_in_array_roundtrips_in_spec_dialect(self):
         # 官方实现对数组内嵌套结构也保持无损（字段组折叠）
         tool = make_tool(JsonToToonAction)
         data = {'forecast': [{'day': 'Mon', 'temp': {'min': -2, 'max': 4}}]}
-        result = json.loads(message_text(list(tool._invoke({'json_input': json.dumps(data)}))[0]))
-        assert decode_toon(result['toon']) == data
+        msgs = list(tool._invoke({'json_input': json.dumps(data)}))
+        assert decode_toon(message_json(msgs[1])['toon']) == data
 
     def test_invalid_json_returns_friendly_error(self):
         tool = make_tool(JsonToToonAction)
@@ -160,59 +181,68 @@ class TestJsonToToonAction:
         assert len(msgs) == 1
         assert message_text(msgs[0]).startswith('Error:')
 
-    def test_unsupported_type_returns_friendly_error(self):
+    def test_non_finite_number_normalized_to_null(self):
+        # json.loads 接受 Infinity/NaN；TOON 规范将非有限数字归一化为 null，转换照常成功
         tool = make_tool(JsonToToonAction)
-        # json.loads 可以接受 Infinity，但 toon 编码器可能拒绝；无论哪一步失败都不能抛异常
         msgs = list(tool._invoke({'json_input': '{"v": Infinity}'}))
-        assert len(msgs) == 1
+        assert len(msgs) == 2
+        assert message_json(msgs[1])['toon'] == 'v: null'
 
     def test_non_string_input_normalized(self):
         tool = make_tool(JsonToToonAction)
         msgs = list(tool._invoke({'json_input': {'a': 1}}))
-        assert len(msgs) == 1
-        result = json.loads(message_text(msgs[0]))
-        assert result['toon'] == encode_toon({'a': 1})
+        assert len(msgs) == 2
+        assert message_json(msgs[1])['toon'] == encode_toon({'a': 1})
 
 
 class TestToonToJsonAction:
     def test_basic_object(self):
         tool = make_tool(ToonToJsonAction)
         msgs = list(tool._invoke({'toon_input': 'name: Alice\nage: 30'}))
-        assert len(msgs) == 1
+        # text 输出为格式化 JSON 字符串，json 输出为解析后的对象
+        assert len(msgs) == 2
         text = message_text(msgs[0])
         assert json.loads(text) == {'name': 'Alice', 'age': 30}
         assert text.startswith('{\n  ')  # indent=2
+        assert message_json(msgs[1]) == {'name': 'Alice', 'age': 30}
 
     def test_unicode_preserved(self):
         tool = make_tool(ToonToJsonAction)
         msgs = list(tool._invoke({'toon_input': 'city: 北京'}))
         assert '北京' in message_text(msgs[0])
         assert '\\u' not in message_text(msgs[0])
+        assert message_json(msgs[1]) == {'city': '北京'}
 
     def test_tabular_toon(self):
         tool = make_tool(ToonToJsonAction)
         toon = 'users[2]{id,name,role}:\n  1,Ada,admin\n  2,Bob,user'
-        result = json.loads(message_text(list(tool._invoke({'toon_input': toon}))[0]))
-        assert result == {'users': [{'id': 1, 'name': 'Ada', 'role': 'admin'}, {'id': 2, 'name': 'Bob', 'role': 'user'}]}
+        msgs = list(tool._invoke({'toon_input': toon}))
+        expected = {'users': [{'id': 1, 'name': 'Ada', 'role': 'admin'}, {'id': 2, 'name': 'Bob', 'role': 'user'}]}
+        assert json.loads(message_text(msgs[0])) == expected
+        assert message_json(msgs[1]) == expected
 
     def test_tab_delimiter_auto_detected_from_header(self):
         # 规范要求分隔符声明在头部 [N<TAB>]，解码器自动识别，无需提示
         tool = make_tool(ToonToJsonAction)
         toon = 'users[2\t]{id\tname}:\n  1\tAda\n  2\tBob'
-        result = json.loads(message_text(list(tool._invoke({'toon_input': toon}))[0]))
-        assert result == {'users': [{'id': 1, 'name': 'Ada'}, {'id': 2, 'name': 'Bob'}]}
+        msgs = list(tool._invoke({'toon_input': toon}))
+        expected = {'users': [{'id': 1, 'name': 'Ada'}, {'id': 2, 'name': 'Bob'}]}
+        assert json.loads(message_text(msgs[0])) == expected
+        assert message_json(msgs[1]) == expected
 
     def test_nested_field_groups(self):
         # 官方 README 天气样例的 TOON 文本（含嵌套字段组）可直接解码
         tool = make_tool(ToonToJsonAction)
         toon = 'forecast[2]{day,temp{min,max},condition}:\n  Mon,-2,4,snow\n  Tue,1,7,cloudy'
-        result = json.loads(message_text(list(tool._invoke({'toon_input': toon}))[0]))
-        assert result == {
+        msgs = list(tool._invoke({'toon_input': toon}))
+        expected = {
             'forecast': [
                 {'day': 'Mon', 'temp': {'min': -2, 'max': 4}, 'condition': 'snow'},
                 {'day': 'Tue', 'temp': {'min': 1, 'max': 7}, 'condition': 'cloudy'},
             ]
         }
+        assert json.loads(message_text(msgs[0])) == expected
+        assert message_json(msgs[1]) == expected
 
     def test_invalid_toon_returns_friendly_error(self):
         tool = make_tool(ToonToJsonAction)

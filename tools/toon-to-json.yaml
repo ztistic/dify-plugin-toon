@@ -8,7 +8,7 @@ description:
   human:
     en_US: Convert a TOON string back to formatted JSON
     zh_Hans: 将 TOON 字符串转换回格式化 JSON
-  llm: "Convert a TOON (Token-Oriented Object Notation) string back to a pretty-printed JSON string (ensure_ascii=false, indent=2). The delimiter is auto-detected from tabular headers. Use this to restore data that was previously encoded with the JSON to TOON tool."
+  llm: "Convert a TOON (Token-Oriented Object Notation) string back to JSON. The text output is the pretty-printed JSON string (ensure_ascii=false, indent=2); a JSON output carries the parsed object for downstream nodes. The delimiter is auto-detected from tabular headers. Use this to restore data that was previously encoded with the JSON to TOON tool."
 parameters:
   - name: 'toon_input'
     type: string

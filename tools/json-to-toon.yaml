@@ -8,7 +8,7 @@ description:
   human:
     en_US: Convert a JSON string to TOON format with compression statistics
     zh_Hans: 将 JSON 字符串转换为 TOON 格式，并返回压缩比统计
-  llm: "Convert a JSON string to TOON (Token-Oriented Object Notation) to reduce token usage in LLM prompts. Returns a JSON message containing the TOON text and compression statistics (original_chars, toon_chars, compression_ratio, savings_percent). Uniform arrays of objects are encoded in tabular form with field names declared only once."
+  llm: "Convert a JSON string to TOON (Token-Oriented Object Notation) to reduce token usage in LLM prompts. The text output is the plain TOON text. A JSON output carries the TOON text and compression statistics (toon, original_chars, toon_chars, compression_ratio, savings_percent) for downstream nodes. Uniform arrays of objects are encoded in tabular form with field names declared only once."
 parameters:
   - name: 'json_input'
     type: string

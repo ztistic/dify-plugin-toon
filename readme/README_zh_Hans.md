@@ -20,8 +20,10 @@ TOON 是面向 LLM 的紧凑数据格式，通过去掉冗余引号、大括号�
 | `json_input` | `string` | 是   | 待转换的 JSON 字符串                        |
 | `delimiter`  | `select` | 否   | 分隔符：`comma`（默认）/ `tab` / `pipe`     |
 
-返回一个 JSON 消息，包含 `toon` 输出文本以及压缩统计
-（`original_chars`、`toon_chars`、`compression_ratio`、`savings_percent`）。
+输出分两部分：**text** 输出为纯 TOON 文本，直接供 LLM 阅读；
+**json** 输出为结构化对象，包含 `toon` 文本及压缩统计
+（`original_chars`、`toon_chars`、`compression_ratio`、`savings_percent`），
+可在工作流中被下游节点作为变量引用。
 
 ### TOON to JSON
 
@@ -29,7 +31,8 @@ TOON 是面向 LLM 的紧凑数据格式，通过去掉冗余引号、大括号�
 |--------------|----------|------|--------------------------|
 | `toon_input` | `string` | 是   | 待转换的 TOON 字符串     |
 
-返回 `ensure_ascii=False`、`indent=2` 格式化后的 JSON 字符串。
+**text** 输出为 `ensure_ascii=False`、`indent=2` 格式化后的 JSON 字符串；
+**json** 输出为解析后的对象，可被下游节点引用。
 JSON → TOON → JSON 往返转换保持一致。
 
 ## 错误处理
