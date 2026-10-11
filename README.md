@@ -91,7 +91,7 @@ declared once in the header and each element becomes one compact row.
 
 ### TOON to JSON
 
-Convert a TOON string back into JSON (`ensure_ascii=false`, 2-space indent).
+Convert a TOON string into formatted JSON (`ensure_ascii=false`, 2-space indent).
 The delimiter is auto-detected from tabular headers, as the TOON
 specification requires. Round-tripping JSON -> TOON -> JSON preserves the
 data.

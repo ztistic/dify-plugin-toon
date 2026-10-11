@@ -6,9 +6,9 @@ identity:
     zh_Hans: TOON 转 JSON
 description:
   human:
-    en_US: Convert a TOON string back to formatted JSON
-    zh_Hans: 将 TOON 字符串转换回格式化 JSON
-  llm: "Convert a TOON (Token-Oriented Object Notation) string back to JSON. The text output is the pretty-printed JSON string (ensure_ascii=false, indent=2); a JSON output carries the parsed object for downstream nodes. The delimiter is auto-detected from tabular headers. Use this to restore data that was previously encoded with the JSON to TOON tool."
+    en_US: Convert a TOON string to formatted JSON
+    zh_Hans: 将 TOON 字符串转换为格式化 JSON
+  llm: "Convert a TOON (Token-Oriented Object Notation) string to JSON. The text output is the pretty-printed JSON string (ensure_ascii=false, indent=2); a JSON output carries the parsed object for downstream nodes. The delimiter is auto-detected from tabular headers. Use this to restore data that was previously encoded with the JSON to TOON tool."
 parameters:
   - name: 'toon_input'
     type: string
@@ -19,7 +19,7 @@ parameters:
     human_description:
       en_US: 'The TOON string to convert'
       zh_Hans: '需要转换的 TOON 字符串'
-    llm_description: "The TOON string to convert back to JSON."
+    llm_description: "The TOON string to convert to JSON."
     form: llm
 extra:
   python:
