@@ -1,4 +1,4 @@
-# Dify TOON 转换器插件（中文说明）
+# Dify TOON 转换插件（中文说明）
 
 > 本文件为中文补充说明，市场发布以英文 [README.md](../README.md) 为准。
 

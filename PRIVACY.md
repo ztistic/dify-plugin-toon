@@ -55,4 +55,4 @@ As a user, you have the right to:
 ## Contact
 
 For questions about this policy or our data practices, open an issue in the
-[TOON Converter Plugin Repository](https://github.com/ztistic/dify-plugin-toon).
+[TOON Plugin Repository](https://github.com/ztistic/dify-plugin-toon).

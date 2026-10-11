@@ -32,7 +32,7 @@ credentials to provide.
 
 ## Installation
 
-1. From Dify Marketplace: search "TOON Converter" in the Plugins page and install.
+1. From Dify Marketplace: search "TOON" in the Plugins page and install.
 2. Or install from a local `.difypkg`: Plugins -> Install Plugin -> Via Local File.
 
 ## Tools
