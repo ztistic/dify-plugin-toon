@@ -1,0 +1,16 @@
+identity:
+  author: eft
+  name: toon_converter
+  label:
+    en_US: TOON Converter
+    zh_Hans: TOON 转换器
+  description:
+    en_US: Convert between JSON and TOON (Token-Oriented Object Notation) to cut LLM token usage by 30-60%, with compression ratio statistics.
+    zh_Hans: 在 JSON 与 TOON（Token-Oriented Object Notation）之间双向转换，可减少 30-60% 的 LLM Token 消耗，并附带压缩比统计。
+  icon: icon.svg
+tools:
+  - tools/json-to-toon.yaml
+  - tools/toon-to-json.yaml
+extra:
+  python:
+    source: provider/toon-converter.py

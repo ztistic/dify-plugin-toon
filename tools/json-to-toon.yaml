@@ -1,0 +1,51 @@
+identity:
+  name: json-to-toon
+  author: eft
+  label:
+    en_US: JSON to TOON
+    zh_Hans: JSON 转 TOON
+description:
+  human:
+    en_US: Convert a JSON string to TOON format with compression statistics
+    zh_Hans: 将 JSON 字符串转换为 TOON 格式，并返回压缩比统计
+  llm: "Convert a JSON string to TOON (Token-Oriented Object Notation) to reduce token usage in LLM prompts. Returns a JSON message containing the TOON text and compression statistics (original_chars, toon_chars, compression_ratio, savings_percent). Uniform arrays of objects are encoded in tabular form with field names declared only once."
+parameters:
+  - name: 'json_input'
+    type: string
+    required: true
+    label:
+      en_US: 'JSON Input'
+      zh_Hans: 'JSON 输入'
+    human_description:
+      en_US: 'The JSON string to convert'
+      zh_Hans: '需要转换的 JSON 字符串'
+    llm_description: "The JSON string to convert to TOON format. Must be valid JSON (objects, arrays, strings, numbers, booleans or null)."
+    form: llm
+  - name: 'delimiter'
+    type: select
+    required: false
+    default: comma
+    options:
+      - value: comma
+        label:
+          en_US: 'Comma (,)'
+          zh_Hans: '逗号 (,)'
+      - value: tab
+        label:
+          en_US: 'Tab'
+          zh_Hans: '制表符'
+      - value: pipe
+        label:
+          en_US: 'Pipe (|)'
+          zh_Hans: '竖线 (|)'
+    label:
+      en_US: 'Delimiter'
+      zh_Hans: '分隔符'
+    human_description:
+      en_US: 'Field delimiter used in tabular TOON output'
+      zh_Hans: 'TOON 表格输出使用的字段分隔符'
+    llm_description: "Field delimiter for tabular TOON output: 'comma' (default), 'tab' or 'pipe'."
+    form: form
+extra:
+  python:
+    source: tools/json_to_toon.py
