@@ -133,7 +133,7 @@ pytest
 Package with the [Dify Plugin CLI](https://github.com/langgenius/dify-plugin-daemon/releases):
 
 ```bash
-dify plugin package . -o dify-plugin-toon-1.0.0.difypkg
+dify plugin package . -o toon-1.0.0.difypkg
 ```
 
 ## License
