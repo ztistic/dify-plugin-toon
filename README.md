@@ -26,8 +26,9 @@ nested structures and tabular arrays with nested field groups.
 
 - Dify 1.14.2 or later
 
-No external service is required. Conversion is performed locally in the
-plugin runtime; no credentials are needed.
+No network connection or external service is required: conversion runs
+locally in the plugin runtime, with no endpoint to configure and no
+credentials to provide.
 
 ## Installation
 
